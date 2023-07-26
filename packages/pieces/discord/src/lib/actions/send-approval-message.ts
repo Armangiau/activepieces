@@ -40,13 +40,13 @@ export const discordSendApprovalMessage = createAction({
                 {
                   type: 2,
                   label: "Approve",
-                  style: 5,
+                  style: 3,
                   url: approvalLink
                 },
                 {
                   type: 2,
                   label: "Disapprove",
-                  style: 5,
+                  style: 4,
                   url: disapprovalLink
                 }
               ]
