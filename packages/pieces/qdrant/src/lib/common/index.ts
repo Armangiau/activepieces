@@ -1,4 +1,4 @@
-import { Property } from '@activepieces/pieces-framework';
+import { Property, type Store } from '@activepieces/pieces-framework';
 
 export const filteringProps = {
   must: Property.Object({
@@ -65,3 +65,40 @@ export const convertToFilter = (infosToGetPoint: {must: any; must_not: any}) => 
   }
   return filter;
 };
+
+let collectionNamesStore: string[]|undefined
+export const upCollectionNames = (store: Store) => {
+  return {
+    replace: (names: string[]) => {
+      collectionNamesStore = names
+      store.put('collectionNames', names)
+    },
+    add: (name: string) => {
+      if (collectionNamesStore?.includes(name)) return
+      collectionNamesStore?.push(name)
+      store.put('collectionNames', collectionNamesStore)
+    },
+    remove: (name: string) => {
+      collectionNamesStore?.splice(collectionNamesStore.indexOf(name), 1)
+      store.put('collectionNames', collectionNamesStore)
+    }
+  }
+}
+
+const collectionNemeInfos = {
+  displayName: 'Collection Name',
+  description: 'The name of the collection needed for this action',
+  required: true,
+} satisfies {required: true, displayName: string, description: string}
+
+export const collectionName =  (canBeNew?: boolean) => collectionNamesStore && !canBeNew ?
+Property.Dropdown({
+  ...collectionNemeInfos,
+  refreshers: [],
+  options: async () => {
+    const options = (collectionNamesStore as string[]).map(name => ({ label: name, value: name }))
+    return {options}
+  }
+}) : Property.ShortText({
+  ...collectionNemeInfos
+})

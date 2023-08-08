@@ -1,5 +1,5 @@
 import { createAction, Property } from '@activepieces/pieces-framework';
-import { convertToFilter, filteringProps } from '../common';
+import { collectionName, convertToFilter, filteringProps } from '../common';
 import { qdrantAuth } from '../..';
 import { QdrantClient } from '@qdrant/js-client-rest';
 import { isArray } from 'lodash';
@@ -10,11 +10,7 @@ export const searchPoints = createAction({
   displayName: 'Search Points',
   description: 'Search for points closest to your given vector (= embedding)',
   props: {
-    collectionName: Property.ShortText({
-      displayName: 'Collection Name',
-      required: true,
-      description: 'The name of the collection you want to search.',
-    }),
+    collectionName: collectionName(),
     vector: Property.ShortText({
       displayName: 'Embedding',
       required: true,
@@ -72,14 +68,10 @@ export const searchPoints = createAction({
 
     const limit = propsValue.limitResult ?? 20;
 
-    if (propsValue.negativeVector)
-      return await client.recommend(propsValue.collectionName, {
-        positive: vector,
-        negative: negativeVector,
-        filter,
-        limit,
-        with_payload: true,
-      });
+    if (negativeVector) {
+      // math func on: https://qdrant.tech/documentation/concepts/search/?selector=aHRtbCA%2BIGJvZHkgPiBkaXY6bnRoLW9mLXR5cGUoMSkgPiBzZWN0aW9uID4gZGl2ID4gZGl2ID4gZGl2ID4gYXJ0aWNsZSA%2BIGgyOm50aC1vZi10eXBlKDUp
+      vector.map((vec, i) => vec*2 + (negativeVector as number[])[i]);
+    }
 
     return await client.search(propsValue.collectionName, {
       vector,

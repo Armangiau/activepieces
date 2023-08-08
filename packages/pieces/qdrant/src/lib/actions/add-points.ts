@@ -2,11 +2,11 @@ import { QdrantClient } from '@qdrant/js-client-rest';
 import { qdrantAuth } from '../..';
 import {
   createAction,
-  Property,
-  Validators,
+  Property
 } from '@activepieces/pieces-framework';
 import { isArray } from 'lodash';
 import { randomUUID } from 'crypto';
+import { collectionName, upCollectionNames } from '../common';
 
 export const addPointsToCollection = createAction({
   auth: qdrantAuth,
@@ -16,19 +16,10 @@ export const addPointsToCollection = createAction({
   description:
     'Instert a point (= embedding or vector + other infos) to a specific collection, if the collection does not exist it will be created v',
   props: {
-    collectionName: Property.ShortText({
-      displayName: 'Collection Name',
-      description: 'The name of the collection to add the point to',
-      required: true,
-    }),
+    collectionName: collectionName(true),
     embeddings: Property.ShortText({
       displayName: 'Embeddings',
       description: 'Embeddings (= vectors) for the points',
-      // validators: [
-      //   Validators.pattern(
-      //     /^\s*\[\s*(-?\d+(\.\d+)?\s*(,\s*-?\d+(\.\d+)?\s*)*)?\]\s*$/
-      //   ), // verfy if it is an array of numbers
-      // ],
       required: true,
     }),
     embeddingsIds: Property.ShortText({
@@ -36,11 +27,6 @@ export const addPointsToCollection = createAction({
       description: 'The ids of the embeddings for the points',
       defaultValue: 'Auto',
       required: true,
-      // validators: [
-      //   Validators.pattern(
-      //     /^\s*\[\s*("[^"\\]*(\\.[^"\\]*)*"\s*(,\s*"[^"\\]*(\\.[^"\\]*)*"\s*)*)?\]\s*|Auto$/
-      //   ), // verfy if it is an array of strings or the Auto value
-      // ],
     }),
     distance: Property.StaticDropdown({
       displayName: 'Calculation Method of distance',
@@ -61,14 +47,24 @@ export const addPointsToCollection = createAction({
       description: 'The additional informations for the points',
       required: false
     }),
+    storage: Property.StaticDropdown({
+      displayName: 'Storage',
+      description: 'Define where points will be stored',
+      options: {
+        options: [
+          { label: 'on Disk', value: 'Disk' },
+          { label: 'On Memory', value: 'Memory' },
+        ],
+      },
+      defaultValue: 'Disk',
+      required: false
+    })
   },
-  run: async ({ auth, propsValue }) => {
+  run: async ({ auth, propsValue, store }) => {
     const client = new QdrantClient({
       apiKey: auth.key,
       url: auth.serverAdress,
     });
-
-    console.warn('ids: \n', propsValue.embeddingsIds, 'embeddings(12) : \n', propsValue.embeddings[12], 'embeddings : \n', propsValue.embeddings )
     
     const embeddings = propsValue.embeddings as unknown as number[][]
 
@@ -95,16 +91,16 @@ export const addPointsToCollection = createAction({
 
     const payloads = propsValue.payloads;
 
-    for (const key in payloads) {
-      const element = payloads[key];
-      if (typeof element == 'string') {
-        try {
-          payloads[key] = JSON.parse(element);
-        } catch {
-          null;
-        }
-      }
-    }
+    // for (const key in payloads) {
+    //   const element = payloads[key];
+    //   if (typeof element == 'string') {
+    //     try {
+    //       payloads[key] = JSON.parse(element);
+    //     } catch {
+    //       null;
+    //     }
+    //   }
+    // }
 
     const points = [];
 
@@ -127,9 +123,11 @@ export const addPointsToCollection = createAction({
       });
     }
 
-    const collection = (await client.getCollections()).collections;
+    const collections = (await client.getCollections()).collections;
+    upCollectionNames(store).replace(collections.map(c => c.name));
+    upCollectionNames(store).add(propsValue.collectionName)
     if (
-      !collection.includes({
+      !collections.includes({
         name: propsValue.collectionName,
       })
     ) {
@@ -137,8 +135,9 @@ export const addPointsToCollection = createAction({
         vectors: {
           size: embeddingsLen,
           distance: propsValue.distance as 'Dot' | 'Cosine' | 'Euclid',
+          on_disk: propsValue.storage === 'Disk'
         },
-        on_disk_payload: true,
+        on_disk_payload: propsValue.storage === 'Disk',
       });
     }
 

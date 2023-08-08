@@ -1,6 +1,7 @@
-import { Property, createAction } from "@activepieces/pieces-framework";
+import { createAction } from "@activepieces/pieces-framework";
 import {qdrantAuth} from '../..'
 import { QdrantClient } from "@qdrant/js-client-rest";
+import { collectionName } from "../common";
 
 export const deleteCollection = createAction({
   auth: qdrantAuth,
@@ -8,11 +9,7 @@ export const deleteCollection = createAction({
   displayName: 'Delete Collection',
   description: 'Delete a collection of your database',
   props: {
-    collectionName: Property.ShortText({
-      displayName: 'Collection Name',
-      description: 'The name of the collection to delete',
-      required: true,
-    })
+    collectionName: collectionName(),
   },
   run: async ({auth, propsValue}) => {
     const client = new QdrantClient({

@@ -1,6 +1,7 @@
 import { QdrantClient } from "@qdrant/js-client-rest";
 import { qdrantAuth } from "../..";
-import { createAction, Property } from "@activepieces/pieces-framework";
+import { createAction } from "@activepieces/pieces-framework";
+import { collectionName } from "../common";
 
 export const collectionInfos = createAction({
   auth: qdrantAuth,
@@ -8,11 +9,7 @@ export const collectionInfos = createAction({
   displayName: 'Get Collection Infos',
   description: 'Get the all the infos of a specific collection',
   props: {
-    collectionName: Property.ShortText({
-      displayName: 'Collection Name',
-      description: 'The name of the collection to get the infos from',
-      required: true,
-    })
+    collectionName: collectionName(),
   },
   run: async ({auth, propsValue}) => {
     const client = new QdrantClient({

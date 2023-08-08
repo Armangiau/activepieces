@@ -5,6 +5,7 @@ import { collectionInfos } from "./lib/actions/get-collection-infos";
 import { deleteCollection } from "./lib/actions/delete-collection";
 import { deletePoints } from "./lib/actions/delete-points";
 import { getPoints } from "./lib/actions/get-points";
+import { searchPoints } from "./lib/actions/search-points";
 
 export const qdrantAuth = PieceAuth.CustomAuth({
   displayName: "Qdrant Connection",
@@ -29,6 +30,6 @@ export const qdrant = createPiece({
   minimumSupportedRelease: '0.6.0',
   logoUrl: "https://cdn.activepieces.com/pieces/qdrant.png",
   authors: ['ArmanGiau'],
-  actions: [addPointsToCollection, collectionList, collectionInfos, deleteCollection, deletePoints, getPoints], //, , searchPoints
+  actions: [addPointsToCollection, collectionList, collectionInfos, deleteCollection, deletePoints, getPoints, searchPoints],
   triggers: [],
 });
