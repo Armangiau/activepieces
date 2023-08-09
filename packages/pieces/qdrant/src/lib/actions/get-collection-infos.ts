@@ -16,7 +16,8 @@ export const collectionInfos = createAction({
       apiKey: auth.key,
       url: auth.serverAdress,
     });
-    const collectionInfos = await client.getCollection(propsValue.collectionName);
+    const collectionName = propsValue.collectionName['name'] as string
+    const collectionInfos = await client.getCollection(collectionName);
     return collectionInfos
   }
 })

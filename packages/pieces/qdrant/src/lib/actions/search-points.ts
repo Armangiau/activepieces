@@ -72,8 +72,8 @@ export const searchPoints = createAction({
       // math func on: https://qdrant.tech/documentation/concepts/search/?selector=aHRtbCA%2BIGJvZHkgPiBkaXY6bnRoLW9mLXR5cGUoMSkgPiBzZWN0aW9uID4gZGl2ID4gZGl2ID4gZGl2ID4gYXJ0aWNsZSA%2BIGgyOm50aC1vZi10eXBlKDUp
       vector.map((vec, i) => vec*2 + (negativeVector as number[])[i]);
     }
-
-    return await client.search(propsValue.collectionName, {
+    const collectionName = propsValue.collectionName['name'] as string
+    return await client.search(collectionName, {
       vector,
       filter,
       limit,

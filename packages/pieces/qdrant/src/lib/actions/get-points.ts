@@ -18,16 +18,18 @@ export const getPoints = createAction({
       apiKey: auth.key,
       url: auth.serverAdress,
     })
+    const collectionName = propsValue.collectionName['name'] as string
+
     if (propsValue.getPointsBy === 'Ids') {
       const ids = propsValue.infosToGetPoint['ids']
-      return await client.retrieve(propsValue.collectionName, {
+      return await client.retrieve(collectionName, {
         ids: isArray(ids) ? ids : [ids]
       })
     }
     
     else {
       const filtering = propsValue.infosToGetPoint as { must: any; must_not: any }
-      return await client.scroll(propsValue.collectionName, {
+      return await client.scroll(collectionName, {
         filter: convertToFilter(filtering)
       })
     }

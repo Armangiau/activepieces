@@ -18,14 +18,16 @@ export const deletePoints = createAction({
       apiKey: auth.key,
       url: auth.serverAdress,
     });
+
+    const collectionName = propsValue.collectionName['name'] as string
     if (propsValue.getPointsBy === 'Ids') {
       const ids = propsValue.infosToGetPoint['ids']
-      return await client.delete(propsValue.collectionName, {
+      return await client.delete(collectionName, {
         points: isArray(ids) ? ids : [ids],
       });
     }
 
-    return await client.delete(propsValue.collectionName, {
+    return await client.delete(collectionName, {
       filter: convertToFilter(
         propsValue.infosToGetPoint as { must: any; must_not: any }
       ),

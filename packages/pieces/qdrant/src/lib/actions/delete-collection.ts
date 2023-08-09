@@ -16,7 +16,8 @@ export const deleteCollection = createAction({
       apiKey: auth.key,
       url: auth.serverAdress,
     });
-    const response = await client.deleteCollection(propsValue.collectionName);
+    const collectionName = propsValue.collectionName['name'] as string
+    const response = await client.deleteCollection(collectionName);
     return response
   }
 })

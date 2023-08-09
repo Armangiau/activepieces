@@ -50,7 +50,10 @@ export const seclectPointsProps = {
   }),
 };
 
-export const convertToFilter = (infosToGetPoint: {must: any; must_not: any}) => {
+export const convertToFilter = (infosToGetPoint: {
+  must: any;
+  must_not: any;
+}) => {
   type Tfilter = { key: string; match: { value: any } }[];
   const filter = { must: [], must_not: [] } as {
     must: Tfilter;
@@ -66,39 +69,62 @@ export const convertToFilter = (infosToGetPoint: {must: any; must_not: any}) => 
   return filter;
 };
 
-let collectionNamesStore: string[]|undefined
+let collectionNamesStore: string[] | undefined;
 export const upCollectionNames = (store: Store) => {
   return {
     replace: (names: string[]) => {
-      collectionNamesStore = names
-      store.put('collectionNames', names)
+      collectionNamesStore = names;
+      store.put('collectionNames', names);
     },
     add: (name: string) => {
-      if (collectionNamesStore?.includes(name)) return
-      collectionNamesStore?.push(name)
-      store.put('collectionNames', collectionNamesStore)
+      if (collectionNamesStore?.includes(name)) return;
+      collectionNamesStore?.push(name);
+      store.put('collectionNames', collectionNamesStore);
     },
     remove: (name: string) => {
-      collectionNamesStore?.splice(collectionNamesStore.indexOf(name), 1)
-      store.put('collectionNames', collectionNamesStore)
-    }
-  }
-}
+      collectionNamesStore?.splice(collectionNamesStore.indexOf(name), 1);
+      store.put('collectionNames', collectionNamesStore);
+    },
+  };
+};
 
-const collectionNemeInfos = {
+const collectionNameInfos = {
   displayName: 'Collection Name',
   description: 'The name of the collection needed for this action',
   required: true,
-} satisfies {required: true, displayName: string, description: string}
+} satisfies { required: true; displayName: string; description: string };
 
-export const collectionName =  (canBeNew?: boolean) => collectionNamesStore && !canBeNew ?
+/* export const collectionName =  (canBeNew?: boolean) => collectionNamesStore && !canBeNew ?
 Property.Dropdown({
-  ...collectionNemeInfos,
+  ...collectionNameInfos,
   refreshers: [],
   options: async () => {
     const options = (collectionNamesStore as string[]).map(name => ({ label: name, value: name }))
     return {options}
   }
 }) : Property.ShortText({
-  ...collectionNemeInfos
-})
+  ...collectionNameInfos
+}) */
+
+export const collectionName = (canBeNew?: boolean) =>
+  Property.DynamicProperties({
+    displayName: 'Collection Name',
+    refreshers: [],
+    required: true,
+    props: async () => {
+      if (collectionNamesStore && !canBeNew) {
+        const options = (collectionNamesStore as string[]).map(
+          (name) => ({ label: name, value: name })
+        );
+        return {name: Property.StaticDropdown({
+          ...collectionNameInfos,
+          options: {
+            options
+          }
+        })}
+      }
+      return {name: Property.ShortText({
+        ...collectionNameInfos,
+      })}
+    },
+  });

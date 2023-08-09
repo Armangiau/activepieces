@@ -123,15 +123,17 @@ export const addPointsToCollection = createAction({
       });
     }
 
+    const collectionName = propsValue.collectionName['name'] as string
+    
     const collections = (await client.getCollections()).collections;
     upCollectionNames(store).replace(collections.map(c => c.name));
-    upCollectionNames(store).add(propsValue.collectionName)
+    upCollectionNames(store).add(collectionName)
     if (
       !collections.includes({
-        name: propsValue.collectionName,
+        name: collectionName,
       })
     ) {
-      await client.createCollection(propsValue.collectionName, {
+      await client.createCollection(collectionName, {
         vectors: {
           size: embeddingsLen,
           distance: propsValue.distance as 'Dot' | 'Cosine' | 'Euclid',
@@ -141,7 +143,7 @@ export const addPointsToCollection = createAction({
       });
     }
 
-    const response = await client.upsert(propsValue.collectionName, {
+    const response = await client.upsert(collectionName, {
       points,
     });
 
