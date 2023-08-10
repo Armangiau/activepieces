@@ -2,7 +2,6 @@ import { createAction } from "@activepieces/pieces-framework";
 import { seclectPointsProps, convertToFilter, collectionName } from "../common";
 import { qdrantAuth } from "../..";
 import { QdrantClient } from "@qdrant/js-client-rest";
-import { isArray } from "lodash";
 
 export const getPoints = createAction({
   auth: qdrantAuth,
@@ -10,7 +9,7 @@ export const getPoints = createAction({
   displayName: 'Get Points',
   description: 'Get the points of a specific collection',
   props: {
-    collectionName: collectionName(),
+    ...collectionName(),
     ...seclectPointsProps
   },
   run: async ({ auth, propsValue }) => {
@@ -18,12 +17,12 @@ export const getPoints = createAction({
       apiKey: auth.key,
       url: auth.serverAdress,
     })
-    const collectionName = propsValue.collectionName['name'] as string
+    const collectionName = propsValue.collectionName as string
 
     if (propsValue.getPointsBy === 'Ids') {
       const ids = propsValue.infosToGetPoint['ids']
       return await client.retrieve(collectionName, {
-        ids: isArray(ids) ? ids : [ids]
+        ids: ids instanceof Array ? ids : [ids]
       })
     }
     

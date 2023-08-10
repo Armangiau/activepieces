@@ -4,7 +4,6 @@ import {
   createAction,
   Property
 } from '@activepieces/pieces-framework';
-import { isArray } from 'lodash';
 import { randomUUID } from 'crypto';
 import { collectionName, upCollectionNames } from '../common';
 
@@ -16,7 +15,7 @@ export const addPointsToCollection = createAction({
   description:
     'Instert a point (= embedding or vector + other infos) to a specific collection, if the collection does not exist it will be created v',
   props: {
-    collectionName: collectionName(true),
+    ...collectionName(true),
     embeddings: Property.ShortText({
       displayName: 'Embeddings',
       description: 'Embeddings (= vectors) for the points',
@@ -109,7 +108,7 @@ export const addPointsToCollection = createAction({
 
       for (const key in payloads) {
         const elem = payloads[key];
-        if (isArray(elem) && elem.length == numberOfEmbeddings) {
+        if (elem instanceof Array && elem.length == numberOfEmbeddings) {
           payload[key] = elem[i];
         } else {
           payload[key] = elem;
@@ -123,11 +122,17 @@ export const addPointsToCollection = createAction({
       });
     }
 
-    const collectionName = propsValue.collectionName['name'] as string
-    
+
     const collections = (await client.getCollections()).collections;
     upCollectionNames(store).replace(collections.map(c => c.name));
-    upCollectionNames(store).add(collectionName)
+
+    let collectionName = propsValue.collectionName as string
+    
+    if (collectionName === 'newName' && propsValue.newName) {
+      collectionName = propsValue.newName['name'] as string
+      upCollectionNames(store).add(collectionName)
+    }
+
     if (
       !collections.includes({
         name: collectionName,

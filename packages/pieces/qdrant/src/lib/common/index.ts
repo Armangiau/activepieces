@@ -54,7 +54,10 @@ export const convertToFilter = (infosToGetPoint: {
   must: any;
   must_not: any;
 }) => {
-  type Tfilter = { key: string; match: { value: any } }[];
+  type Tfilter = (
+    | { has_id: (string | number)[] }
+    | { key: string; match: { value: any } }
+  )[];
   const filter = { must: [], must_not: [] } as {
     must: Tfilter;
     must_not: Tfilter;
@@ -63,6 +66,26 @@ export const convertToFilter = (infosToGetPoint: {
   for (const getKey in infosToGetPoint) {
     for (const key in infosToGetPoint[getKey as keyof typeof filter]) {
       const value = infosToGetPoint[getKey as keyof typeof filter][key];
+
+      if (['id', 'ids'].includes(key.toLocaleLowerCase())) {
+        filter[getKey as keyof typeof filter].push({
+          has_id: value instanceof Array ? value : [value],
+        });
+        break;
+      }
+
+      const destrucArray = (values: any) => {
+        for (const value of values) {
+          filter[getKey as keyof typeof filter].push({ key, match: { value } });
+          if (value instanceof Array) destrucArray(value);
+        }
+      };
+
+      if (value instanceof Array) {
+        destrucArray(value);
+        break;
+      }
+
       filter[getKey as keyof typeof filter].push({ key, match: { value } });
     }
   }
@@ -70,20 +93,20 @@ export const convertToFilter = (infosToGetPoint: {
 };
 
 let collectionNamesStore: string[] | undefined;
-export const upCollectionNames = (store: Store) => {
+export const upCollectionNames = (store?: Store) => {
   return {
     replace: (names: string[]) => {
       collectionNamesStore = names;
-      store.put('collectionNames', names);
+      store?.put('collectionNames', names);
     },
     add: (name: string) => {
       if (collectionNamesStore?.includes(name)) return;
       collectionNamesStore?.push(name);
-      store.put('collectionNames', collectionNamesStore);
+      store?.put('collectionNames', collectionNamesStore);
     },
     remove: (name: string) => {
       collectionNamesStore?.splice(collectionNamesStore.indexOf(name), 1);
-      store.put('collectionNames', collectionNamesStore);
+      store?.put('collectionNames', collectionNamesStore);
     },
   };
 };
@@ -106,25 +129,51 @@ Property.Dropdown({
   ...collectionNameInfos
 }) */
 
-export const collectionName = (canBeNew?: boolean) =>
-  Property.DynamicProperties({
-    displayName: 'Collection Name',
-    refreshers: [],
-    required: true,
-    props: async () => {
-      if (collectionNamesStore && !canBeNew) {
-        const options = (collectionNamesStore as string[]).map(
-          (name) => ({ label: name, value: name })
-        );
-        return {name: Property.StaticDropdown({
-          ...collectionNameInfos,
-          options: {
-            options
-          }
-        })}
+
+export const collectionName = (canBeNew?: boolean) => {
+  const suggestionNameRefrechers = canBeNew ? ['newName', 'auth'] : ['auth']
+
+  const base = {
+    collectionName: Property.Dropdown({
+      ...collectionNameInfos,
+      refreshers: suggestionNameRefrechers,
+      options: async () => {
+        const options = (collectionNamesStore as string[]).map((name) => ({
+          label: name,
+          value: name,
+        }));
+        if (canBeNew) {
+          options.push({
+            label: 'New Collection',
+            value: 'newName'
+          })
+        }
+        return {options}
+      },
+    }),
+  }
+   
+  const newName = Property.DynamicProperties({
+    ...collectionNameInfos,
+    refreshers: ['suggestionName'],
+    props: async (props) => {
+      if ((props['suggestionName'] as unknown as string) === 'newName') {
+        return {
+          name: Property.ShortText({
+            ...collectionNameInfos,
+          }),
+        };
       }
-      return {name: Property.ShortText({
-        ...collectionNameInfos,
-      })}
+      return null as any 
     },
-  });
+  })
+
+
+  type Tbase = typeof base & {newName?: typeof newName}
+
+  if (canBeNew) {
+    (base as Tbase).newName = newName
+  }
+
+  return base as Tbase
+}

@@ -6,6 +6,8 @@ import { deleteCollection } from "./lib/actions/delete-collection";
 import { deletePoints } from "./lib/actions/delete-points";
 import { getPoints } from "./lib/actions/get-points";
 import { searchPoints } from "./lib/actions/search-points";
+import { upCollectionNames } from './lib/common'
+import { QdrantClient } from "@qdrant/js-client-rest";
 
 export const qdrantAuth = PieceAuth.CustomAuth({
   displayName: "Qdrant Connection",
@@ -20,7 +22,19 @@ export const qdrantAuth = PieceAuth.CustomAuth({
       required: true,
       description: "Enter the API Key of your Qdrant account",
     }),
-  },   
+  },
+  validate: async ({auth}) => {
+    const client = new QdrantClient({
+      url: auth.serverAdress,
+      apiKey: auth.key,
+    })
+    try {
+      upCollectionNames().replace((await client.getCollections()).collections.map((c) => c.name));
+    } catch (e) {
+      return {valid: false, error: (e as Error).message}
+    }
+    return {valid: true}
+  },
   required: true,
 })
 

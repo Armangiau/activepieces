@@ -9,14 +9,14 @@ export const deleteCollection = createAction({
   displayName: 'Delete Collection',
   description: 'Delete a collection of your database',
   props: {
-    collectionName: collectionName(),
+    ...collectionName(),
   },
   run: async ({auth, propsValue}) => {
     const client = new QdrantClient({
       apiKey: auth.key,
       url: auth.serverAdress,
     });
-    const collectionName = propsValue.collectionName['name'] as string
+    const collectionName = propsValue.collectionName as string
     const response = await client.deleteCollection(collectionName);
     return response
   }
