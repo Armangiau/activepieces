@@ -129,7 +129,7 @@ export const addPointsToCollection = createAction({
     let collectionName = propsValue.collectionName as string
     
     if (collectionName === 'newName' && propsValue.newName) {
-      collectionName = propsValue.newName['name'] as string
+      collectionName = propsValue.newName
       upCollectionNames(store).add(collectionName)
     }
 

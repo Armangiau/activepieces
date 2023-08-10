@@ -23,18 +23,6 @@ export const qdrantAuth = PieceAuth.CustomAuth({
       description: "Enter the API Key of your Qdrant account",
     }),
   },
-  validate: async ({auth}) => {
-    const client = new QdrantClient({
-      url: auth.serverAdress,
-      apiKey: auth.key,
-    })
-    try {
-      upCollectionNames().replace((await client.getCollections()).collections.map((c) => c.name));
-    } catch (e) {
-      return {valid: false, error: (e as Error).message}
-    }
-    return {valid: true}
-  },
   required: true,
 })
 

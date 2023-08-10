@@ -101,7 +101,8 @@ export const upCollectionNames = (store?: Store) => {
     },
     add: (name: string) => {
       if (collectionNamesStore?.includes(name)) return;
-      collectionNamesStore?.push(name);
+      collectionNamesStore ??= []
+      collectionNamesStore.push(name);
       store?.put('collectionNames', collectionNamesStore);
     },
     remove: (name: string) => {
@@ -137,35 +138,26 @@ export const collectionName = (canBeNew?: boolean) => {
     collectionName: Property.Dropdown({
       ...collectionNameInfos,
       refreshers: suggestionNameRefrechers,
-      options: async () => {
-        const options = (collectionNamesStore as string[]).map((name) => ({
+      options: async (props) => {
+        const options = collectionNamesStore ? collectionNamesStore.map((name) => ({
           label: name,
           value: name,
-        }));
-        if (canBeNew) {
-          options.push({
-            label: 'New Collection',
-            value: 'newName'
-          })
+        })) : [];
+        
+        if (canBeNew && props['auth']) return {
+          options,
+          disabled: true
         }
+
         return {options}
       },
     }),
   }
    
-  const newName = Property.DynamicProperties({
-    ...collectionNameInfos,
-    refreshers: ['suggestionName'],
-    props: async (props) => {
-      if ((props['suggestionName'] as unknown as string) === 'newName') {
-        return {
-          name: Property.ShortText({
-            ...collectionNameInfos,
-          }),
-        };
-      }
-      return null as any 
-    },
+  const newName = Property.ShortText({
+    displayName: 'New Collection Name',
+    description: 'Create a new collection for your qdrant database',
+    required: true,
   })
 
 
