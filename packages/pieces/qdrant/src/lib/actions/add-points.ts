@@ -5,7 +5,7 @@ import {
   Property
 } from '@activepieces/pieces-framework';
 import { randomUUID } from 'crypto';
-import { collectionName, upCollectionNames } from '../common';
+import { collectionName } from '../common';
 
 export const addPointsToCollection = createAction({
   auth: qdrantAuth,
@@ -15,7 +15,7 @@ export const addPointsToCollection = createAction({
   description:
     'Instert a point (= embedding or vector + other infos) to a specific collection, if the collection does not exist it will be created v',
   props: {
-    ...collectionName(true),
+    collectionName,
     embeddings: Property.ShortText({
       displayName: 'Embeddings',
       description: 'Embeddings (= vectors) for the points',
@@ -59,7 +59,7 @@ export const addPointsToCollection = createAction({
       required: false
     })
   },
-  run: async ({ auth, propsValue, store }) => {
+  run: async ({ auth, propsValue }) => {
     const client = new QdrantClient({
       apiKey: auth.key,
       url: auth.serverAdress,
@@ -124,14 +124,7 @@ export const addPointsToCollection = createAction({
 
 
     const collections = (await client.getCollections()).collections;
-    upCollectionNames(store).replace(collections.map(c => c.name));
-
-    let collectionName = propsValue.collectionName as string
-    
-    if (collectionName === 'newName' && propsValue.newName) {
-      collectionName = propsValue.newName
-      upCollectionNames(store).add(collectionName)
-    }
+    const collectionName = propsValue.collectionName as string
 
     if (
       !collections.includes({

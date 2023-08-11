@@ -9,7 +9,7 @@ export const collectionInfos = createAction({
   displayName: 'Get Collection Infos',
   description: 'Get the all the infos of a specific collection',
   props: {
-    ...collectionName(),
+    collectionName,
   },
   run: async ({auth, propsValue}) => {
     const client = new QdrantClient({

@@ -9,7 +9,7 @@ export const getPoints = createAction({
   displayName: 'Get Points',
   description: 'Get the points of a specific collection',
   props: {
-    ...collectionName(),
+    collectionName,
     ...seclectPointsProps
   },
   run: async ({ auth, propsValue }) => {

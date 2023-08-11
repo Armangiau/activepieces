@@ -6,8 +6,6 @@ import { deleteCollection } from "./lib/actions/delete-collection";
 import { deletePoints } from "./lib/actions/delete-points";
 import { getPoints } from "./lib/actions/get-points";
 import { searchPoints } from "./lib/actions/search-points";
-import { upCollectionNames } from './lib/common'
-import { QdrantClient } from "@qdrant/js-client-rest";
 
 export const qdrantAuth = PieceAuth.CustomAuth({
   displayName: "Qdrant Connection",

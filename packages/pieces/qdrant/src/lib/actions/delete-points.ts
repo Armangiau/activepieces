@@ -9,7 +9,7 @@ export const deletePoints = createAction({
   displayName: 'Delete Points',
   description: 'Delete points of a specific collection',
   props: {
-    ...collectionName(),
+    collectionName,
     ...seclectPointsProps,
   },
   run: async ({ auth, propsValue }) => {

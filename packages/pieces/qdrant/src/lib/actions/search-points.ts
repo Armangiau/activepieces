@@ -9,7 +9,7 @@ export const searchPoints = createAction({
   displayName: 'Search Points',
   description: 'Search for points closest to your given vector (= embedding)',
   props: {
-    ...collectionName(),
+    collectionName,
     vector: Property.ShortText({
       displayName: 'Embedding',
       required: true,

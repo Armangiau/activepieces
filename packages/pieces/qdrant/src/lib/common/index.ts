@@ -1,4 +1,4 @@
-import { Property, type Store } from '@activepieces/pieces-framework';
+import { Property } from '@activepieces/pieces-framework';
 
 export const filteringProps = {
   must: Property.Object({
@@ -92,80 +92,8 @@ export const convertToFilter = (infosToGetPoint: {
   return filter;
 };
 
-let collectionNamesStore: string[] | undefined;
-export const upCollectionNames = (store?: Store) => {
-  return {
-    replace: (names: string[]) => {
-      collectionNamesStore = names;
-      store?.put('collectionNames', names);
-    },
-    add: (name: string) => {
-      if (collectionNamesStore?.includes(name)) return;
-      collectionNamesStore ??= []
-      collectionNamesStore.push(name);
-      store?.put('collectionNames', collectionNamesStore);
-    },
-    remove: (name: string) => {
-      collectionNamesStore?.splice(collectionNamesStore.indexOf(name), 1);
-      store?.put('collectionNames', collectionNamesStore);
-    },
-  };
-};
-
-const collectionNameInfos = {
+export const collectionName = Property.ShortText({
   displayName: 'Collection Name',
   description: 'The name of the collection needed for this action',
   required: true,
-} satisfies { required: true; displayName: string; description: string };
-
-/* export const collectionName =  (canBeNew?: boolean) => collectionNamesStore && !canBeNew ?
-Property.Dropdown({
-  ...collectionNameInfos,
-  refreshers: [],
-  options: async () => {
-    const options = (collectionNamesStore as string[]).map(name => ({ label: name, value: name }))
-    return {options}
-  }
-}) : Property.ShortText({
-  ...collectionNameInfos
-}) */
-
-
-export const collectionName = (canBeNew?: boolean) => {
-  const suggestionNameRefrechers = canBeNew ? ['newName', 'auth'] : ['auth']
-
-  const base = {
-    collectionName: Property.Dropdown({
-      ...collectionNameInfos,
-      refreshers: suggestionNameRefrechers,
-      options: async (props) => {
-        const options = collectionNamesStore ? collectionNamesStore.map((name) => ({
-          label: name,
-          value: name,
-        })) : [];
-        
-        if (canBeNew && props['auth']) return {
-          options,
-          disabled: true
-        }
-
-        return {options}
-      },
-    }),
-  }
-   
-  const newName = Property.ShortText({
-    displayName: 'New Collection Name',
-    description: 'Create a new collection for your qdrant database',
-    required: true,
-  })
-
-
-  type Tbase = typeof base & {newName?: typeof newName}
-
-  if (canBeNew) {
-    (base as Tbase).newName = newName
-  }
-
-  return base as Tbase
-}
+})
