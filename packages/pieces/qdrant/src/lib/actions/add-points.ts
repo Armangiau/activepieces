@@ -127,9 +127,7 @@ export const addPointsToCollection = createAction({
     const collectionName = propsValue.collectionName as string
 
     if (
-      !collections.includes({
-        name: collectionName,
-      })
+      !collections.map(c => c.name).includes(collectionName)
     ) {
       await client.createCollection(collectionName, {
         vectors: {
@@ -143,6 +141,7 @@ export const addPointsToCollection = createAction({
 
     const response = await client.upsert(collectionName, {
       points,
+      wait: true
     });
 
     return response;
