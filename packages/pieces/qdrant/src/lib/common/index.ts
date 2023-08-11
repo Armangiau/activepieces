@@ -1,4 +1,4 @@
-import { Property, type Store } from '@activepieces/pieces-framework';
+import { Property } from '@activepieces/pieces-framework';
 
 export const filteringProps = {
   must: Property.Object({
@@ -50,8 +50,14 @@ export const seclectPointsProps = {
   }),
 };
 
-export const convertToFilter = (infosToGetPoint: {must: any; must_not: any}) => {
-  type Tfilter = { key: string; match: { value: any } }[];
+export const convertToFilter = (infosToGetPoint: {
+  must: any;
+  must_not: any;
+}) => {
+  type Tfilter = (
+    | { has_id: (string | number)[] }
+    | { key: string; match: { value: any } }
+  )[];
   const filter = { must: [], must_not: [] } as {
     must: Tfilter;
     must_not: Tfilter;
@@ -60,45 +66,34 @@ export const convertToFilter = (infosToGetPoint: {must: any; must_not: any}) => 
   for (const getKey in infosToGetPoint) {
     for (const key in infosToGetPoint[getKey as keyof typeof filter]) {
       const value = infosToGetPoint[getKey as keyof typeof filter][key];
+
+      if (['id', 'ids'].includes(key.toLocaleLowerCase())) {
+        filter[getKey as keyof typeof filter].push({
+          has_id: value instanceof Array ? value : [value],
+        });
+        break;
+      }
+
+      const destrucArray = (values: any) => {
+        for (const value of values) {
+          filter[getKey as keyof typeof filter].push({ key, match: { value } });
+          if (value instanceof Array) destrucArray(value);
+        }
+      };
+
+      if (value instanceof Array) {
+        destrucArray(value);
+        break;
+      }
+
       filter[getKey as keyof typeof filter].push({ key, match: { value } });
     }
   }
   return filter;
 };
 
-let collectionNamesStore: string[]|undefined
-export const upCollectionNames = (store: Store) => {
-  return {
-    replace: (names: string[]) => {
-      collectionNamesStore = names
-      store.put('collectionNames', names)
-    },
-    add: (name: string) => {
-      if (collectionNamesStore?.includes(name)) return
-      collectionNamesStore?.push(name)
-      store.put('collectionNames', collectionNamesStore)
-    },
-    remove: (name: string) => {
-      collectionNamesStore?.splice(collectionNamesStore.indexOf(name), 1)
-      store.put('collectionNames', collectionNamesStore)
-    }
-  }
-}
-
-const collectionNemeInfos = {
+export const collectionName = Property.ShortText({
   displayName: 'Collection Name',
   description: 'The name of the collection needed for this action',
   required: true,
-} satisfies {required: true, displayName: string, description: string}
-
-export const collectionName =  (canBeNew?: boolean) => collectionNamesStore && !canBeNew ?
-Property.Dropdown({
-  ...collectionNemeInfos,
-  refreshers: [],
-  options: async () => {
-    const options = (collectionNamesStore as string[]).map(name => ({ label: name, value: name }))
-    return {options}
-  }
-}) : Property.ShortText({
-  ...collectionNemeInfos
 })

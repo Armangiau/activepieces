@@ -20,7 +20,7 @@ export const qdrantAuth = PieceAuth.CustomAuth({
       required: true,
       description: "Enter the API Key of your Qdrant account",
     }),
-  },   
+  },
   required: true,
 })
 

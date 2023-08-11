@@ -4,9 +4,8 @@ import {
   createAction,
   Property
 } from '@activepieces/pieces-framework';
-import { isArray } from 'lodash';
 import { randomUUID } from 'crypto';
-import { collectionName, upCollectionNames } from '../common';
+import { collectionName } from '../common';
 
 export const addPointsToCollection = createAction({
   auth: qdrantAuth,
@@ -14,9 +13,9 @@ export const addPointsToCollection = createAction({
   name: 'add_points_to_collection',
   displayName: 'Add points to collection',
   description:
-    'Instert a point (= embedding or vector + other infos) to a specific collection, if the collection does not exist it will be created v',
+    'Instert a point (= embedding or vector + other infos) to a specific collection, if the collection does not exist it will be created',
   props: {
-    collectionName: collectionName(true),
+    collectionName,
     embeddings: Property.ShortText({
       displayName: 'Embeddings',
       description: 'Embeddings (= vectors) for the points',
@@ -60,7 +59,7 @@ export const addPointsToCollection = createAction({
       required: false
     })
   },
-  run: async ({ auth, propsValue, store }) => {
+  run: async ({ auth, propsValue }) => {
     const client = new QdrantClient({
       apiKey: auth.key,
       url: auth.serverAdress,
@@ -109,7 +108,7 @@ export const addPointsToCollection = createAction({
 
       for (const key in payloads) {
         const elem = payloads[key];
-        if (isArray(elem) && elem.length == numberOfEmbeddings) {
+        if (elem instanceof Array && elem.length == numberOfEmbeddings) {
           payload[key] = elem[i];
         } else {
           payload[key] = elem;
@@ -123,15 +122,16 @@ export const addPointsToCollection = createAction({
       });
     }
 
+
     const collections = (await client.getCollections()).collections;
-    upCollectionNames(store).replace(collections.map(c => c.name));
-    upCollectionNames(store).add(propsValue.collectionName)
+    const collectionName = propsValue.collectionName as string
+
     if (
       !collections.includes({
-        name: propsValue.collectionName,
+        name: collectionName,
       })
     ) {
-      await client.createCollection(propsValue.collectionName, {
+      await client.createCollection(collectionName, {
         vectors: {
           size: embeddingsLen,
           distance: propsValue.distance as 'Dot' | 'Cosine' | 'Euclid',
@@ -141,7 +141,7 @@ export const addPointsToCollection = createAction({
       });
     }
 
-    const response = await client.upsert(propsValue.collectionName, {
+    const response = await client.upsert(collectionName, {
       points,
     });
 

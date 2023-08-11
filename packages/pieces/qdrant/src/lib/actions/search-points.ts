@@ -2,7 +2,6 @@ import { createAction, Property } from '@activepieces/pieces-framework';
 import { collectionName, convertToFilter, filteringProps } from '../common';
 import { qdrantAuth } from '../..';
 import { QdrantClient } from '@qdrant/js-client-rest';
-import { isArray } from 'lodash';
 
 export const searchPoints = createAction({
   auth: qdrantAuth,
@@ -10,7 +9,7 @@ export const searchPoints = createAction({
   displayName: 'Search Points',
   description: 'Search for points closest to your given vector (= embedding)',
   props: {
-    collectionName: collectionName(),
+    collectionName,
     vector: Property.ShortText({
       displayName: 'Embedding',
       required: true,
@@ -49,8 +48,8 @@ export const searchPoints = createAction({
       | undefined;
 
     if (
-      !isArray(vector) ||
-      (negativeVector != undefined && !isArray(negativeVector))
+      !(vector instanceof Array) ||
+      (negativeVector != undefined && !(negativeVector instanceof Array))
     )
       throw new Error('Vectors should be arrays of numbers');
 
@@ -72,8 +71,8 @@ export const searchPoints = createAction({
       // math func on: https://qdrant.tech/documentation/concepts/search/?selector=aHRtbCA%2BIGJvZHkgPiBkaXY6bnRoLW9mLXR5cGUoMSkgPiBzZWN0aW9uID4gZGl2ID4gZGl2ID4gZGl2ID4gYXJ0aWNsZSA%2BIGgyOm50aC1vZi10eXBlKDUp
       vector.map((vec, i) => vec*2 + (negativeVector as number[])[i]);
     }
-
-    return await client.search(propsValue.collectionName, {
+    const collectionName = propsValue.collectionName as string
+    return await client.search(collectionName, {
       vector,
       filter,
       limit,
