@@ -28,7 +28,7 @@ export const deletePoints = createAction({
     const filter = convertToFilter(
       propsValue.infosToGetPoint as { must: any; must_not: any }
     )
-    console.log(JSON.stringify(filter))
+    // console.log(JSON.stringify(filter))
     return await client.delete(collectionName, {
       filter
     });
