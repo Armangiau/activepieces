@@ -5,7 +5,7 @@ import { googleDriveCreateNewTextFile } from './lib/action/create-new-text-file'
 import { googleDriveUploadFile } from './lib/action/upload-file';
 import { newFile } from './lib/triggers/new-file';
 import { newFolder } from './lib/triggers/new-folder';
-import { downloadFileAndExtractTextFrom } from './lib/action/extract-text';
+import { downloadFile } from './lib/action/download-file';
 
 export const googleDriveAuth = PieceAuth.OAuth2({
     description: "",
@@ -19,7 +19,7 @@ export const googleDriveAuth = PieceAuth.OAuth2({
 export const googleDrive = createPiece({
 	minimumSupportedRelease: '0.5.0',
     logoUrl: 'https://cdn.activepieces.com/pieces/google-drive.png',
-	actions: [googleDriveCreateNewFolder, googleDriveCreateNewTextFile, googleDriveUploadFile, downloadFileAndExtractTextFrom],
+	actions: [googleDriveCreateNewFolder, googleDriveCreateNewTextFile, googleDriveUploadFile, downloadFile],
 	displayName: "Google Drive",
 	authors: ['kanarelo', 'BastienMe', 'MoShizzle', 'Armangiau'],
 	triggers: [newFile, newFolder],

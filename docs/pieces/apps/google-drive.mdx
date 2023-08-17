@@ -93,11 +93,14 @@ The file URL or base64 to upload
               
         </Expandable>
       </Card>
-      <Card title="Extract text">
-        Extract text from google drive file
+      <Card title="Download file">
+        Download a selected file from google drive file
         <Expandable title="Properties">
           <ResponseField name="File ID" required type="Short_text">
-            The ID of the file to extract the text
+            The ID of the file to download
+          </ResponseField>
+          <ResponseField name="MIME type" required type="Short_text">
+            The MIME type of the file to download
           </ResponseField>
         </Expandable>
       <Card/>
