@@ -19,14 +19,30 @@ export const downloadFile = createAction({
     }),
   },
   run: async ({ auth, propsValue }) => {
-    const googledlCall = (url: string) =>
-      fetch(url, {
+    const googledlCall = async (url: string) => {
+      
+      const download = await fetch(url, {
         headers: {
           Authorization: `Bearer ${auth.access_token}`,
         },
-      }).then((response) =>
-        response.ok ? response.blob() : Promise.reject(response)
+      })
+        .then((response) =>
+          response.ok ? response.blob() : Promise.reject(response)
+        )
+        .catch(
+          (error) =>
+            Promise.reject(new Error(
+              `Error when download file:\n\tDownload file response: ${
+                (error as Error).message ?? error
+              }`
+            ))
+        );
+      
+      return (
+        `data:${propsValue.mimeType};base64,` +
+        Buffer.from(await download.arrayBuffer()).toString('base64')
       );
+    };
 
     // the google drive API doesn't allowed downloading google documents but we can export them to office formats
     if (
@@ -50,29 +66,11 @@ export const downloadFile = createAction({
             'application/vnd.openxmlformats-officedocument.presentationml.presentation';
           break;
       }
-      const exportURL = `https://www.googleapis.com/drive/v3/files/${propsValue.fileId}/export?mimeType=${propsValue.mimeType}`;
-      try {
-        const exportFile = await googledlCall(exportURL);
-        return Buffer.from(await exportFile.arrayBuffer());
-      } catch (error) {
-        throw new Error(
-          `Error when download file:\n\tDownload file response: ${
-            (error as Error).message
-          }`
-        );
-      }
+      return await googledlCall(
+        `https://www.googleapis.com/drive/v3/files/${propsValue.fileId}/export?mimeType=${propsValue.mimeType}`
+      )
     } else {
-      const dlURL = `https://www.googleapis.com/drive/v3/files/${propsValue.fileId}?alt=media`;
-      try {
-        const dlFile = await googledlCall(dlURL);
-        return Buffer.from(await dlFile.arrayBuffer());
-      } catch (error) {
-        throw new Error(
-          `Error when download file:\n\tDownload file response: ${
-            (error as Error).message
-          }`
-        );
-      }
+      return await googledlCall(`https://www.googleapis.com/drive/v3/files/${propsValue.fileId}?alt=media`);
     }
   },
 });
