@@ -1,14 +1,12 @@
 import { Property } from '@activepieces/pieces-framework';
 
 export const decodeEmbeddings = (embeddings: string | number[] | string[] | number[][]) => {
-  if (!(embeddings[0] instanceof Array) && !(typeof embeddings[0] === 'string' && embeddings[0].length === 1)) {
+  if (typeof embeddings[0] === 'number' || (typeof embeddings[0] === 'string' && embeddings[0].length === 1)) {
     embeddings = [embeddings] as string[] | number[][];
   }
-  
   if (embeddings.length === 0) throw new Error('Embeddings must contain one element minimum')
-  
   if (typeof embeddings[0] === 'string') {
-    return (embeddings as string[]).map(embedding => new Float32Array(Buffer.from(embedding, 'base64').buffer))
+    return (embeddings as string[]).map(embedding => new Float32Array(new Uint8Array(Buffer.from(embedding, 'base64')).buffer))
   } else {
     return (embeddings as number[][]).map(embedding => new Float32Array(embedding))
   }

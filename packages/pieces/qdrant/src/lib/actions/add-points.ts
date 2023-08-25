@@ -122,14 +122,10 @@ export const addPointsToCollection = createAction({
       });
     }
 
-
     const collections = (await client.getCollections()).collections;
     const collectionName = propsValue.collectionName as string
-
     if (
-      !collections.includes({
-        name: collectionName,
-      })
+      !collections.find(collection => collection.name === collectionName)
     ) {
       await client.createCollection(collectionName, {
         vectors: {
@@ -140,9 +136,9 @@ export const addPointsToCollection = createAction({
         on_disk_payload: propsValue.storage === 'Disk',
       });
     }
-
     const response = await client.upsert(collectionName, {
       points,
+      wait: true
     });
 
     return response;
