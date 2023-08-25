@@ -47,7 +47,7 @@ export const downloadFile = createAction({
     // the google drive API doesn't allowed downloading google documents but we can export them to office formats
     if (
       [
-        'application/vnd.google-apps.folder',
+        'application/vnd.google-apps.document',
         'application/vnd.google-apps.spreadsheet',
         'application/vnd.google-apps.presentation',
       ].includes(propsValue.mimeType)
