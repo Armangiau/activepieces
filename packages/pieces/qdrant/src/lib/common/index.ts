@@ -8,7 +8,7 @@ export const decodeEmbeddings = (embeddings: string | number[] | string[] | numb
   if (embeddings.length === 0) throw new Error('Embeddings must contain one element minimum')
   
   if (typeof embeddings[0] === 'string') {
-    return (embeddings as string[]).map(embedding => new Float32Array(Buffer.from(embedding, 'utf-8').buffer))
+    return (embeddings as string[]).map(embedding => new Float32Array(Buffer.from(embedding, 'base64').buffer))
   } else {
     return (embeddings as number[][]).map(embedding => new Float32Array(embedding))
   }
