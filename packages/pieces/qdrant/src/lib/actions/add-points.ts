@@ -5,7 +5,7 @@ import {
   Property
 } from '@activepieces/pieces-framework';
 import { randomUUID } from 'crypto';
-import { collectionName } from '../common';
+import { collectionName, decodeEmbeddings } from '../common';
 
 export const addPointsToCollection = createAction({
   auth: qdrantAuth,
@@ -65,7 +65,7 @@ export const addPointsToCollection = createAction({
       url: auth.serverAdress,
     });
     
-    const embeddings = propsValue.embeddings as unknown as number[][]
+    const embeddings = decodeEmbeddings(propsValue.embeddings)
 
     const numberOfEmbeddings = embeddings.length;
     const embeddingsLen = embeddings[0].length;
@@ -118,7 +118,7 @@ export const addPointsToCollection = createAction({
       points.push({
         id: autoEmbeddingsIds ? randomUUID() : embeddingsIds[i],
         payload,
-        vector: embeddings[i],
+        vector: Array.from(embeddings[i]),
       });
     }
 

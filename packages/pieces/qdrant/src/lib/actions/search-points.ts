@@ -1,5 +1,5 @@
 import { createAction, Property } from '@activepieces/pieces-framework';
-import { collectionName, convertToFilter, filteringProps } from '../common';
+import { collectionName, convertToFilter, decodeEmbeddings, filteringProps } from '../common';
 import { qdrantAuth } from '../..';
 import { QdrantClient } from '@qdrant/js-client-rest';
 
@@ -40,12 +40,8 @@ export const searchPoints = createAction({
       must_not,
     });
 
-    let vector = propsValue.vector as unknown as number[] | number[][] | string;
-    let negativeVector = propsValue.negativeVector as unknown as
-      | number[]
-      | number[][]
-      | string
-      | undefined;
+    let vector = Array.from(decodeEmbeddings(propsValue.vector)[0])
+    const negativeVector = propsValue.negativeVector ? Array.from(decodeEmbeddings(propsValue.negativeVector)[0]) : undefined 
 
     if (
       !(vector instanceof Array) ||
@@ -53,23 +49,11 @@ export const searchPoints = createAction({
     )
       throw new Error('Vectors should be arrays of numbers');
 
-    const changeDeepOfArray = (
-      vector: number[] | number[][] | undefined
-    ): number[] | undefined => {
-      if (!vector || typeof vector[0] === 'number')
-        return vector as number[] | undefined;
-      if (vector.length !== 1) throw new Error('Only one vector is allowed');
-      return changeDeepOfArray(vector[0]);
-    };
-
-    vector = changeDeepOfArray(vector) as number[];
-    negativeVector = changeDeepOfArray(negativeVector);
-
     const limit = propsValue.limitResult ?? 20;
 
     if (negativeVector) {
       // math func on: https://qdrant.tech/documentation/concepts/search/?selector=aHRtbCA%2BIGJvZHkgPiBkaXY6bnRoLW9mLXR5cGUoMSkgPiBzZWN0aW9uID4gZGl2ID4gZGl2ID4gZGl2ID4gYXJ0aWNsZSA%2BIGgyOm50aC1vZi10eXBlKDUp
-      vector.map((vec, i) => vec*2 + (negativeVector as number[])[i]);
+      vector = vector.map((vec, i) => vec*2 + negativeVector[i]);
     }
     const collectionName = propsValue.collectionName as string
     return await client.search(collectionName, {
